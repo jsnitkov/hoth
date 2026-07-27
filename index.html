@@ -259,11 +259,10 @@
   }
 
   function render(){
-    // sort: low-stock first, then by name
+    // stable alphabetical order (case-insensitive) — never reshuffles as
+    // quantities change; low stock is surfaced via the banner + amber flag.
     var sorted = items.slice().sort(function(a,b){
-      var la = a.qty <= a.threshold, lb = b.qty <= b.threshold;
-      if(la !== lb) return la ? -1 : 1;
-      return a.name.localeCompare(b.name);
+      return a.name.localeCompare(b.name, undefined, {sensitivity:"base"});
     });
 
     el.list.innerHTML = "";
