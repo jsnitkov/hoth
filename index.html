@@ -1,4 +1,8 @@
+---
+---
 <!doctype html>
+<!-- The empty front matter above makes GitHub Pages run this file through
+     Jekyll, which fills in the version label from the commit it builds. -->
 <html lang="en">
 <head>
 <meta charset="utf-8" />
@@ -216,7 +220,7 @@
       <button class="btn ghost" id="importBtn" style="width:100%;margin-top:12px">&#8679;&nbsp; Import from backup</button>
       <button class="btn ghost" id="menuCloseBtn" style="width:100%;margin-top:20px">Close</button>
       <input type="file" id="fileInput" accept="application/json,.json" style="display:none" />
-      <div class="version">Hoth &middot; v1.2 &middot; 2026-07-27</div>
+      <div class="version" id="version" data-rev="{{ site.github.build_revision }}" data-built="{{ site.time | date: '%Y-%m-%d' }}"></div>
     </div>
   </div>
 
@@ -242,8 +246,24 @@
   };
 
   function load(){
-    try { var v = JSON.parse(localStorage.getItem(KEY)); return Array.isArray(v) ? v : []; }
+    try { var v = JSON.parse(localStorage.getItem(KEY)); return Array.isArray(v) ? clean(v) : []; }
     catch(e){ return []; }
+  }
+  // Coerce stored or imported records into valid items: drop nameless ones,
+  // fix numbers, and give repeated or missing ids a fresh one.
+  function clean(list){
+    var seen = {};
+    return list.map(function(x){
+      var id = (x && x.id) ? String(x.id) : "";
+      if(!id || seen[id]) id = uid();
+      seen[id] = true;
+      return {
+        id: id,
+        name: (x && x.name != null) ? String(x.name).trim() : "",
+        qty: Math.max(0, parseInt(x && x.qty, 10) || 0),
+        threshold: Math.max(0, parseInt(x && x.threshold, 10) || 0)
+      };
+    }).filter(function(x){ return x.name; });
   }
   function save(){
     try { localStorage.setItem(KEY, JSON.stringify(items)); }
@@ -369,29 +389,24 @@
   function importBackup(file){
     var reader = new FileReader();
     reader.onload = function(){
-      var incoming;
-      try {
-        var parsed = JSON.parse(reader.result);
-        incoming = Array.isArray(parsed) ? parsed : (parsed && parsed.items);
-        if(!Array.isArray(incoming)) throw new Error("shape");
-      } catch(e){
+      var parsed;
+      try { parsed = JSON.parse(reader.result); } catch(e){}
+      // Exports have always been {app:"freezer", items:[...]}; refuse anything else.
+      if(!parsed || parsed.app !== "freezer" || !Array.isArray(parsed.items)){
         alert("That doesn't look like a Hoth backup file.");
         return;
       }
-      var clean = incoming.map(function(x){
-        return {
-          id: (x && x.id) ? String(x.id) : uid(),
-          name: (x && x.name != null) ? String(x.name).trim() : "",
-          qty: Math.max(0, parseInt(x && x.qty, 10) || 0),
-          threshold: Math.max(0, parseInt(x && x.threshold, 10) || 0)
-        };
-      }).filter(function(x){ return x.name; });
+      var incoming = clean(parsed.items);
+      if(!incoming.length){
+        alert("That backup has no items in it, so your current list was left alone.");
+        return;
+      }
 
-      var cur = items.length, next = clean.length;
+      var cur = items.length, next = incoming.length;
       var msg = "Replace your current list (" + cur + " item" + (cur===1?"":"s") +
                 ") with " + next + " item" + (next===1?"":"s") + " from this backup?";
       if(confirm(msg)){
-        items = clean;
+        items = incoming;
         save(); closeMenu(); render();
       }
     };
@@ -418,6 +433,22 @@
   el.deleteBtn.addEventListener("click", deleteItem);
   el.scrim.addEventListener("click", function(e){ if(e.target===el.scrim) closeSheet(); });
   el.name.addEventListener("keydown", function(e){ if(e.key==="Enter") saveSheet(); });
+
+  // ---- Version label: filled in by GitHub Pages at deploy time ----
+  (function showVersion(){
+    var v = document.getElementById("version");
+    var rev = v.getAttribute("data-rev"), built = v.getAttribute("data-built");
+    if(/^[0-9a-f]{7,}$/.test(rev)){
+      v.textContent = "Hoth \u00b7 " + rev.slice(0,7) + " \u00b7 " + built;
+      return;
+    }
+    // Opened straight from disk: the template tags are still raw, and the
+    // front-matter dashes land in the page as stray text.
+    v.textContent = "Hoth \u00b7 local copy";
+    Array.prototype.slice.call(document.body.childNodes).forEach(function(n){
+      if(n.nodeType === 3 && /^[\s-]*$/.test(n.nodeValue)) document.body.removeChild(n);
+    });
+  })();
 
   // ---- Home-screen icon generated on the fly (no image files needed) ----
   (function makeIcon(){

@@ -16,38 +16,40 @@ phone's own browser storage — it is never uploaded anywhere.
 - **Backup** — tap the **⋯** button (top right) to **Export** your list to a file
   or **Import** it back. Your safety net, since the data lives only on the device.
 
+## Where it lives
+
+The app is served by GitHub Pages from this repo's `master` branch:
+**https://jsnitkov.github.io/hoth/**. Pushing to `master` redeploys it.
+
+The repo is public, but it holds only the app's code. Your freezer list is
+never in the repo or on GitHub; it lives only in your phone's browser storage.
+
+The version label at the bottom of the **⋯** menu (commit and build date) is
+filled in by GitHub Pages when it deploys, so it is never typed by hand. A copy
+opened straight from disk says "local copy" instead.
+
 ## How to put it on your iPhone home screen
 
-The app needs to open at a web address (a link) for iOS to let you add it to your
-home screen. The **code** at that link contains no personal data — all your
-inventory lives only on your phone. You have two ways to get that link:
+1. Open **https://jsnitkov.github.io/hoth/** in **Safari** on your iPhone.
+2. Tap **Share** (the square with an arrow) → **Add to Home Screen** → **Add**.
+3. A 🧊 Hoth icon is now on your home screen. Tap it and use it like an app.
 
-### Option A — Easiest (recommended): free one-time upload
-1. On your Mac, open **https://app.netlify.com/drop** in a browser.
-2. Drag the whole **Hoth** folder onto that page.
-3. It instantly gives you a link like `https://something.netlify.app`.
-4. Open that link **in Safari on your iPhone**.
-5. Tap the **Share** button (the square with an arrow) → **Add to Home Screen** → **Add**.
-6. Done — a 🧊 Hoth icon is now on your home screen. Tap it and use it like an app.
-
-*(This uploads only the app's code, for free, so your phone has a link to open.
-Your freezer data never goes there.)*
-
-### Option B — Fully offline, no upload at all
-Open `index.html` directly in a browser on your Mac and use it there. It works
-the same, but this way it lives on your computer rather than your phone.
+You can also open `index.html` directly in a browser on your Mac. It works the
+same, but that copy keeps its own separate list.
 
 ## Good to know
 
 - **Where's my data?** In the browser's local storage on whatever device you
-  added it to. If you install via Option A, use the app from the home-screen
-  icon each time so your data stays in one place.
+  added it to, tied to the site it was opened from (`jsnitkov.github.io`). Use the app
+  from the home-screen icon each time so your data stays in one place. If it
+  ever moves to a different site (a custom domain or another host), the app
+  opens empty there. **Export a backup first**, then import it there.
 - **Backups:** Because it's local-only, the data isn't backed up automatically.
   If you erase Safari's website data or delete the app, the list is gone — so use
   the **⋯ → Export backup file** button now and then to save a copy (it saves to
   your Files / downloads). To restore, tap **⋯ → Import from backup** and pick
-  that file. Importing replaces the current list, and it politely ignores any file
-  that isn't a Hoth backup.
+  that file. Importing replaces the current list after asking. It refuses any file
+  that isn't a Hoth backup, and any backup with no items in it.
 - **Notifications:** Reorder alerts show inside the app when you open it (a
   yellow banner). A true "buzz me when the app is closed" notification would
   require either a native app or a cloud service — out of scope for this
