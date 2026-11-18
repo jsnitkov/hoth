@@ -375,11 +375,31 @@
 
   function exportBackup(){
     var payload = { app:"freezer", version:1, exportedAt:new Date().toISOString(), items:items };
-    var blob = new Blob([JSON.stringify(payload, null, 2)], {type:"application/json"});
+    var json = JSON.stringify(payload, null, 2);
+    var filename = "freezer-backup-" + new Date().toISOString().slice(0,10) + ".json";
+
+    // On a phone, hand the file to the share sheet (Save to Files, AirDrop,
+    // Mail...); home-screen apps on iOS handle downloads poorly. Elsewhere,
+    // or if sharing isn't possible, fall back to a plain download.
+    var file = (typeof File === "function") ? new File([json], filename, {type:"application/json"}) : null;
+    if(file && navigator.canShare && navigator.share &&
+       window.matchMedia && matchMedia("(pointer:coarse)").matches &&
+       navigator.canShare({files:[file]})){
+      navigator.share({files:[file], title:"Hoth backup"}).catch(function(e){
+        if(e && e.name === "AbortError") return; // closed the sheet: nothing to do
+        download(json, filename);
+      });
+      return;
+    }
+    download(json, filename);
+  }
+
+  function download(json, filename){
+    var blob = new Blob([json], {type:"application/json"});
     var url = URL.createObjectURL(blob);
     var a = document.createElement("a");
     a.href = url;
-    a.download = "freezer-backup-" + new Date().toISOString().slice(0,10) + ".json";
+    a.download = filename;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
